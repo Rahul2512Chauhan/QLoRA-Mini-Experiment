@@ -1,0 +1,58 @@
+"""
+Shared environment setup script for QLoRA mini-project.
+Use in Colab notebooks with:
+    %run ../scripts/setup_env.py
+"""
+
+import os
+import torch
+
+print("🚀 Starting environment setup...")
+
+# ===============================
+# 1. Install dependencies (Colab)
+# ===============================
+try:
+    import transformers, datasets, peft, bitsandbytes, accelerate, evaluate
+    print("✅ Core libraries already installed")
+except ImportError:
+    print("📦 Installing required packages...")
+    !pip install -qU transformers accelerate bitsandbytes peft datasets sentencepiece safetensors evaluate huggingface_hub
+
+# ===============================
+# 2. Check for Colab & mount Drive
+# ===============================
+if "COLAB_GPU" in os.environ:
+    print("📂 Detected Google Colab → mounting Drive")
+    from google.colab import drive
+    drive.mount('/content/drive', force_remount=True)
+    PROJECT_DIR = "/content/drive/MyDrive/qlora-mini"
+    os.makedirs(PROJECT_DIR, exist_ok=True)
+    print(f"✅ Drive mounted at {PROJECT_DIR}")
+else:
+    PROJECT_DIR = os.path.abspath("../")
+    print(f"💻 Local environment detected → using {PROJECT_DIR}")
+
+# ===============================
+# 3. Hugging Face login
+# ===============================
+from huggingface_hub import login
+
+if "HF_TOKEN" in os.environ:
+    login(token=os.environ["HF_TOKEN"])
+    print("🔑 Hugging Face login via environment variable")
+else:
+    print("⚠️ No HF token found in env. You may need to run:")
+    print("   from huggingface_hub import login; login()")
+
+# ===============================
+# 4. GPU check
+# ===============================
+if torch.cuda.is_available():
+    print("🟢 CUDA available!")
+    print("GPU:", torch.cuda.get_device_name(0))
+    print("Memory allocated:", round(torch.cuda.memory_allocated(0)/1024**3, 2), "GB")
+else:
+    print("🔴 No CUDA GPU detected!")
+
+print("✅ Setup complete!")
